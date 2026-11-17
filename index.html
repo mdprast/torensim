@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulator Pengisian Toren Air — Volume Tabung</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+    .font-mono {
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    @keyframes warning-blink {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.3;
+      }
+    }
+    .animate-warning-blink {
+      animation: warning-blink 0.9s ease-in-out infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .animate-warning-blink {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen lg:h-dvh lg:overflow-hidden bg-slate-50 text-slate-900 antialiased flex flex-col">
+  <header class="shrink-0 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight">
+          Simulator Pengisian Toren Air
+        </h1>
+        <p class="text-xs lg:text-sm text-slate-600">
+          Media Pembelajaran Interaktif Matematika · Volume Tabung (V = 3,14 × r² × t)
+        </p>
+      </div>
+      <button type="button" id="btn-mute" aria-pressed="false"
+        class="min-h-[40px] inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 px-3.5 py-1.5 text-xs lg:text-sm font-semibold text-sky-800 transition-colors cursor-pointer whitespace-nowrap">
+        🔊 Suara Aktif
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 min-h-0 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
+    <div class="h-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 items-stretch">
+      <!-- Panel Input (Kiri / Atas) -->
+      <section aria-labelledby="panel-input-heading" class="lg:col-span-4 min-h-0 flex flex-col justify-between gap-3 bg-white border border-slate-200 rounded-2xl p-4 lg:p-5 shadow-sm">
+        <div class="space-y-3">
+          <div class="border-b border-slate-100 pb-2.5">
+            <h2 id="panel-input-heading" class="text-lg lg:text-xl font-bold text-slate-900 tracking-tight">
+              Parameter Toren &amp; Truk Tangki
+            </h2>
+            <p class="mt-0.5 text-xs lg:text-sm text-slate-600">
+              Atur ukuran tabung dan volume air dari truk tangki.
+            </p>
+          </div>
+
+          <form id="sim-form" class="space-y-2.5" novalidate>
+            <!-- Jari-jari -->
+            <div>
+              <label for="input-radius" class="block text-sm lg:text-base font-semibold text-slate-800 mb-1">
+                Jari-jari Toren <span class="text-slate-500 font-normal">(meter)</span>
+              </label>
+              <div class="flex items-stretch gap-1.5">
+                <button type="button" data-step="-0.25" data-target="input-radius" data-min="0.25" aria-label="Kurangi Jari-jari Toren"
+                  class="w-11 min-h-[42px] shrink-0 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 active:bg-slate-200 text-xl font-bold transition-colors cursor-pointer">
+                  −
+                </button>
+                <div class="relative flex-1 min-w-0">
+                  <input id="input-radius" type="number" step="any" min="0.01" inputmode="decimal" value="1"
+                    class="w-full min-h-[42px] rounded-xl border-2 border-slate-300 bg-white px-3 pr-14 text-lg lg:text-xl font-mono font-semibold text-slate-900 focus:border-sky-600 focus:outline-none transition-colors" />
+                  <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs lg:text-sm font-medium text-slate-500">
+                    meter
+                  </span>
+                </div>
+                <button type="button" data-step="0.25" data-target="input-radius" data-min="0.25" aria-label="Tambah Jari-jari Toren"
+                  class="w-11 min-h-[42px] shrink-0 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 active:bg-slate-200 text-xl font-bold transition-colors cursor-pointer">
+                  +
+                </button>
+              </div>
+            </div>
+
+            <!-- Tinggi -->
+            <div>
+              <label for="input-height" class="block text-sm lg:text-base font-semibold text-slate-800 mb-1">
+                Tinggi Toren <span class="text-slate-500 font-normal">(meter)</span>
+              </label>
+              <div class="flex items-stretch gap-1.5">
+                <button type="button" data-step="-0.5" data-target="input-height" data-min="0.5" aria-label="Kurangi Tinggi Toren"
+                  class="w-11 min-h-[42px] shrink-0 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 active:bg-slate-200 text-xl font-bold transition-colors cursor-pointer">
+                  −
+                </button>
+                <div class="relative flex-1 min-w-0">
+                  <input id="input-height" type="number" step="any" min="0.01" inputmode="decimal" value="2"
+                    class="w-full min-h-[42px] rounded-xl border-2 border-slate-300 bg-white px-3 pr-14 text-lg lg:text-xl font-mono font-semibold text-slate-900 focus:border-sky-600 focus:outline-none transition-colors" />
+                  <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs lg:text-sm font-medium text-slate-500">
+                    meter
+                  </span>
+                </div>
+                <button type="button" data-step="0.5" data-target="input-height" data-min="0.5" aria-label="Tambah Tinggi Toren"
+                  class="w-11 min-h-[42px] shrink-0 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 active:bg-slate-200 text-xl font-bold transition-colors cursor-pointer">
+                  +
+                </button>
+              </div>
+            </div>
+
+            <!-- Volume Truk Tangki -->
+            <div>
+              <label for="input-volume" class="block text-sm lg:text-base font-semibold text-slate-800 mb-1">
+                Volume Air dari Truk Tangki <span class="text-slate-500 font-normal">(liter)</span>
+              </label>
+              <div class="flex items-stretch gap-1.5">
+                <button type="button" data-step="-500" data-target="input-volume" data-min="100" aria-label="Kurangi Volume Air Truk"
+                  class="w-11 min-h-[42px] shrink-0 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 active:bg-slate-200 text-xl font-bold transition-colors cursor-pointer">
+                  −
+                </button>
+                <div class="relative flex-1 min-w-0">
+                  <input id="input-volume" type="number" step="any" min="0.01" inputmode="decimal" value="4500"
+                    class="w-full min-h-[42px] rounded-xl border-2 border-slate-300 bg-white px-3 pr-14 text-lg lg:text-xl font-mono font-semibold text-slate-900 focus:border-sky-600 focus:outline-none transition-colors" />
+                  <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs lg:text-sm font-medium text-slate-500">
+                    liter
+                  </span>
+                </div>
+                <button type="button" data-step="500" data-target="input-volume" data-min="100" aria-label="Tambah Volume Air Truk"
+                  class="w-11 min-h-[42px] shrink-0 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 active:bg-slate-200 text-xl font-bold transition-colors cursor-pointer">
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div id="validation-error" role="alert" class="hidden rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-xs lg:text-sm font-medium text-red-800"></div>
+
+            <!-- Action Buttons -->
+            <div class="pt-1 flex flex-col gap-2">
+              <button type="submit"
+                class="w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-base lg:text-lg font-bold tracking-wide shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap">
+                🚀 SIMULASIKAN PENGISIAN
+              </button>
+              <button type="button" id="btn-reset"
+                class="w-full min-h-[42px] px-4 py-2 rounded-xl border-2 border-slate-300 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-sm lg:text-base font-bold transition-colors cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap">
+                RESET
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Readout Kapasitas Maksimal -->
+        <div class="rounded-xl bg-slate-50 border border-slate-200 p-3 lg:p-3.5 space-y-2">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <span class="text-xs lg:text-sm font-semibold text-slate-600">Rumus Volume Tabung</span>
+            <span class="font-mono text-xs lg:text-sm font-semibold text-slate-800">V = 3,14 × r² × t</span>
+          </div>
+          <div class="border-t border-slate-200 pt-2 flex flex-col gap-0.5">
+            <span class="text-xs lg:text-sm font-semibold text-slate-600">Kapasitas Maksimal Toren</span>
+            <div id="max-capacity-output" class="text-sm font-medium text-slate-500">
+              Tekan SIMULASIKAN PENGISIAN untuk menghitung kapasitas.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel Visualisasi Canvas (Kanan / Bawah) -->
+      <section aria-labelledby="panel-canvas-heading" class="lg:col-span-8 min-h-0 flex flex-col justify-between gap-3 bg-white border border-slate-200 rounded-2xl p-4 lg:p-5 shadow-sm">
+        <div class="shrink-0 flex flex-wrap items-baseline justify-between gap-3 border-b border-slate-100 pb-2.5">
+          <div>
+            <h2 id="panel-canvas-heading" class="text-lg lg:text-xl font-bold text-slate-900 tracking-tight">
+              Visualisasi Pengisian Toren
+            </h2>
+            <p class="text-xs lg:text-sm text-slate-600">
+              Skala proporsional terhadap kapasitas maksimal tabung
+            </p>
+          </div>
+          <div id="percentage-box" class="hidden text-right font-mono tabular-nums">
+            <span class="text-xs text-slate-500 block">Persentase Air</span>
+            <span id="fill-percentage-readout" class="text-xl lg:text-2xl font-extrabold text-sky-700">0%</span>
+          </div>
+        </div>
+
+        <div id="canvas-container" class="relative w-full h-[340px] lg:h-full lg:flex-1 lg:min-h-0 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden">
+          <canvas id="tank-canvas" aria-label="Visualisasi animasi pengisian toren air berbentuk tabung" class="block w-full h-full"></canvas>
+        </div>
+
+        <div id="status-banner" role="status" class="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-700">
+          <p class="text-base lg:text-lg font-semibold text-slate-800">Siap Mensimulasikan Pengisian Toren</p>
+          <p class="text-xs lg:text-sm text-slate-600 mt-0.5">
+            Tekan tombol <span class="font-semibold text-sky-700">SIMULASIKAN PENGISIAN</span> untuk melihat animasi volume air.
+          </p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const PI_APPROX = 3.14;
+      const form = document.getElementById('sim-form');
+      const inputRadius = document.getElementById('input-radius');
+      const inputHeight = document.getElementById('input-height');
+      const inputVolume = document.getElementById('input-volume');
+      const btnReset = document.getElementById('btn-reset');
+      const btnMute = document.getElementById('btn-mute');
+      const validationBox = document.getElementById('validation-error');
+      const capacityBox = document.getElementById('max-capacity-output');
+      const percentageBox = document.getElementById('percentage-box');
+      const percentageText = document.getElementById('fill-percentage-readout');
+      const statusBanner = document.getElementById('status-banner');
+      const canvas = document.getElementById('tank-canvas');
+      const container = document.getElementById('canvas-container');
+
+      let simStatus = 'idle';
+      let currentResult = null;
+      let logicalWidth = 640;
+      let logicalHeight = 400;
+
+      // Web Audio API Sound Synthesizer
+      const soundEngine = (() => {
+        let ctx = null;
+        let activeNodes = [];
+        let activeTimers = [];
+        let streamGain = null;
+        let muted = false;
+
+        function ensureCtx() {
+          if (muted) return null;
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return null;
+          if (!ctx) ctx = new AudioCtx();
+          if (ctx.state === 'suspended') ctx.resume();
+          return ctx;
+        }
+
+        function createNoise(audioCtx, sec = 2.5) {
+          const len = Math.floor(audioCtx.sampleRate * sec);
+          const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+          const data = buf.getChannelData(0);
+          let b0 = 0, b1 = 0, b2 = 0;
+          for (let i = 0; i < len; i++) {
+            const w = Math.random() * 2 - 1;
+            b0 = 0.99765 * b0 + w * 0.099046;
+            b1 = 0.963 * b1 + w * 0.2965164;
+            b2 = 0.57 * b2 + w * 1.0526913;
+            data[i] = (b0 + b1 + b2 + w * 0.1848) * 0.18;
+          }
+          return buf;
+        }
+
+        function clearTimers() {
+          activeTimers.forEach((id) => clearInterval(id));
+          activeTimers = [];
+        }
+
+        function stop() {
+          clearTimers();
+          activeNodes.forEach((n) => {
+            if (typeof n.stop === 'function') { try { n.stop(); } catch {} }
+            try { n.disconnect(); } catch {}
+          });
+          activeNodes = [];
+          streamGain = null;
+        }
+
+        function fadeOut(sec = 0.2) {
+          clearTimers();
+          if (ctx && streamGain) {
+            const now = ctx.currentTime;
+            try {
+              streamGain.gain.cancelScheduledValues(now);
+              streamGain.gain.setValueAtTime(Math.max(0.001, streamGain.gain.value), now);
+              streamGain.gain.exponentialRampToValueAtTime(0.0001, now + sec);
+            } catch {}
+          }
+          const nodes = [...activeNodes];
+          activeNodes = [];
+          streamGain = null;
+          setTimeout(() => {
+            nodes.forEach((n) => {
+              if (typeof n.stop === 'function') { try { n.stop(); } catch {} }
+              try { n.disconnect(); } catch {}
+            });
+          }, Math.ceil(sec * 1000) + 40);
+        }
+
+        function startFilling(durMs) {
+          stop();
+          const audioCtx = ensureCtx();
+          if (!audioCtx) return;
+          const now = audioCtx.currentTime;
+          const src = audioCtx.createBufferSource();
+          src.buffer = createNoise(audioCtx, 2.5);
+          src.loop = true;
+
+          const bp = audioCtx.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.Q.value = 1.6;
+          bp.frequency.setValueAtTime(340, now);
+          bp.frequency.linearRampToValueAtTime(760, now + durMs / 1000);
+
+          const gain = audioCtx.createGain();
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.26, now + 0.15);
+
+          src.connect(bp);
+          bp.connect(gain);
+          gain.connect(audioCtx.destination);
+          src.start(now);
+
+          streamGain = gain;
+          activeNodes.push(src, bp, gain);
+
+          const timer = setInterval(() => {
+            if (muted || !ctx) return;
+            const t = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            const freq = 420 + Math.random() * 520;
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.75, t + 0.08);
+            g.gain.setValueAtTime(0.001, t);
+            g.gain.linearRampToValueAtTime(0.045, t + 0.012);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.1);
+          }, 170);
+          activeTimers.push(timer);
+        }
+
+        function playSafe() {
+          fadeOut(0.22);
+          const audioCtx = ensureCtx();
+          if (!audioCtx) return;
+          const now = audioCtx.currentTime;
+          [523.25, 659.25, 783.99].forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            const st = now + idx * 0.09;
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, st);
+            g.gain.setValueAtTime(0.001, st);
+            g.gain.linearRampToValueAtTime(0.11, st + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, st + 0.36);
+            osc.connect(g);
+            g.connect(audioCtx.destination);
+            osc.start(st);
+            osc.stop(st + 0.38);
+          });
+        }
+
+        function playOverflow() {
+          fadeOut(0.18);
+          const audioCtx = ensureCtx();
+          if (!audioCtx) return;
+          const now = audioCtx.currentTime;
+          const src = audioCtx.createBufferSource();
+          src.buffer = createNoise(audioCtx, 2.0);
+          const lp = audioCtx.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.setValueAtTime(1900, now);
+          lp.frequency.exponentialRampToValueAtTime(650, now + 1.5);
+          const g = audioCtx.createGain();
+          g.gain.setValueAtTime(0.01, now);
+          g.gain.linearRampToValueAtTime(0.36, now + 0.08);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 1.65);
+          src.connect(lp);
+          lp.connect(g);
+          g.connect(audioCtx.destination);
+          src.start(now);
+          src.stop(now + 1.7);
+          activeNodes.push(src, lp, g);
+
+          [0, 0.24].forEach((offset) => {
+            const osc = audioCtx.createOscillator();
+            const wg = audioCtx.createGain();
+            const st = now + offset;
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(740, st);
+            osc.frequency.linearRampToValueAtTime(540, st + 0.16);
+            wg.gain.setValueAtTime(0.001, st);
+            wg.gain.linearRampToValueAtTime(0.12, st + 0.02);
+            wg.gain.exponentialRampToValueAtTime(0.0001, st + 0.19);
+            osc.connect(wg);
+            wg.connect(audioCtx.destination);
+            osc.start(st);
+            osc.stop(st + 0.2);
+          });
+        }
+
+        function setMuted(val) {
+          muted = val;
+          if (muted) stop();
+        }
+
+        return { startFilling, playSafe, playOverflow, stop, setMuted };
+      })();
+
+      let isMuted = false;
+      btnMute.addEventListener('click', () => {
+        isMuted = !isMuted;
+        soundEngine.setMuted(isMuted);
+        btnMute.setAttribute('aria-pressed', String(isMuted));
+        btnMute.textContent = isMuted ? '🔇 Suara Mati' : '🔊 Suara Aktif';
+        btnMute.className = isMuted
+          ? 'min-h-[40px] inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 px-3.5 py-1.5 text-xs lg:text-sm font-semibold text-slate-600 transition-colors cursor-pointer whitespace-nowrap'
+          : 'min-h-[40px] inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 px-3.5 py-1.5 text-xs lg:text-sm font-semibold text-sky-800 transition-colors cursor-pointer whitespace-nowrap';
+      });
+
+      const anim = {
+        currentPercent: 0,
+        targetPercent: 0,
+        startPercent: 0,
+        startTime: 0,
+        durationMs: 1400,
+        isAnimating: false,
+        completed: false,
+      };
+
+      function formatID(val, maxFrac = 2) {
+        return new Intl.NumberFormat('id-ID', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: maxFrac,
+        }).format(val);
+      }
+
+      function updateStatusBanner(pct) {
+        if (simStatus === 'idle' || !currentResult) {
+          statusBanner.className = 'shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-700';
+          statusBanner.innerHTML =
+            '<p class="text-base lg:text-lg font-semibold text-slate-800">Siap Mensimulasikan Pengisian Toren</p>' +
+            '<p class="text-xs lg:text-sm text-slate-600 mt-0.5">Tekan tombol <span class="font-semibold text-sky-700">SIMULASIKAN PENGISIAN</span> untuk melihat animasi volume air.</p>';
+          return;
+        }
+
+        if (simStatus === 'filling') {
+          statusBanner.className = 'shrink-0 rounded-xl border-2 border-sky-300 bg-sky-50 px-4 py-2.5 text-sky-950';
+          statusBanner.innerHTML =
+            `<div class="flex flex-wrap items-center justify-between gap-2">` +
+            `<p class="text-base lg:text-lg font-bold text-sky-900">Mengisi Toren Air...</p>` +
+            `<span class="text-lg font-mono font-bold text-sky-700">${formatID(pct, 1)}%</span>` +
+            `</div>` +
+            `<p class="text-xs lg:text-sm text-sky-800 mt-0.5">Mengalirkan ${formatID(currentResult.truckVolumeLiters)} liter ke dalam toren berkapasitas ${formatID(currentResult.capacityLiters)} liter.</p>`;
+          return;
+        }
+
+        if (simStatus === 'overflow') {
+          statusBanner.className = 'shrink-0 rounded-xl border-2 border-red-600 bg-red-50 px-4 py-2.5 text-red-900 shadow-sm';
+          statusBanner.innerHTML =
+            `<p class="animate-warning-blink text-lg sm:text-xl lg:text-2xl font-extrabold text-red-700 tracking-tight leading-snug">⚠️ BAHAYA! AIR MELUBER! Kapasitas Tidak Cukup!</p>` +
+            `<p class="mt-0.5 text-xs lg:text-sm font-semibold text-red-800">Volume truk (${formatID(currentResult.truckVolumeLiters)} liter) melebihi kapasitas toren (${formatID(currentResult.capacityLiters)} liter) sebesar <span class="underline font-bold">${formatID(currentResult.overflowLiters)} liter</span> (${formatID(currentResult.fillPercentage, 1)}%).</p>`;
+          return;
+        }
+
+        statusBanner.className = 'shrink-0 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-4 py-2.5 text-emerald-950 shadow-sm';
+        statusBanner.innerHTML =
+          `<p class="text-lg sm:text-xl lg:text-2xl font-extrabold text-emerald-800 tracking-tight leading-snug">✅ AMAN! Air berhasil ditampung seluruhnya.</p>` +
+          `<p class="mt-0.5 text-xs lg:text-sm font-semibold text-emerald-900">Terisi ${formatID(currentResult.fillPercentage, 1)}% (${formatID(currentResult.truckVolumeLiters)} liter dari ${formatID(currentResult.capacityLiters)} liter) · Sisa ruang: ${formatID(currentResult.remainingLiters)} liter.</p>`;
+      }
+
+      document.querySelectorAll('button[data-step]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const targetEl = document.getElementById(btn.dataset.target);
+          const step = Number(btn.dataset.step);
+          const minVal = Number(btn.dataset.min);
+          const cur = Number(String(targetEl.value).replace(',', '.'));
+          const base = Number.isFinite(cur) ? cur : 0;
+          const next = Math.max(minVal, Math.round((base + step) * 100) / 100);
+          targetEl.value = String(next);
+        });
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const r = Number(String(inputRadius.value).trim().replace(',', '.'));
+        const t = Number(String(inputHeight.value).trim().replace(',', '.'));
+        const v = Number(String(inputVolume.value).trim().replace(',', '.'));
+
+        if (!Number.isFinite(r) || !Number.isFinite(t) || !Number.isFinite(v) || r <= 0 || t <= 0 || v <= 0) {
+          validationBox.textContent = 'Masukkan nilai jari-jari, tinggi, dan volume air lebih dari 0.';
+          validationBox.classList.remove('hidden');
+          return;
+        }
+
+        validationBox.classList.add('hidden');
+        const capacityM3 = Math.round(PI_APPROX * r * r * t * 1e6) / 1e6;
+        const capacityLiters = Math.round(capacityM3 * 1000 * 1e4) / 1e4;
+        const fillPercentage = (v / capacityLiters) * 100;
+        const isOverflow = v > capacityLiters;
+
+        currentResult = {
+          radiusMeters: r,
+          heightMeters: t,
+          truckVolumeLiters: v,
+          capacityM3,
+          capacityLiters,
+          fillPercentage,
+          isOverflow,
+          overflowLiters: isOverflow ? Math.round((v - capacityLiters) * 100) / 100 : 0,
+          remainingLiters: !isOverflow ? Math.round((capacityLiters - v) * 100) / 100 : 0,
+        };
+
+        capacityBox.innerHTML =
+          `<div class="text-xl lg:text-2xl font-extrabold font-mono text-sky-700">${formatID(capacityLiters)} liter</div>` +
+          `<p class="text-xs font-mono text-slate-600">= 3,14 × (${formatID(r)})² × ${formatID(t)} = ${formatID(capacityM3, 4)} m³ × 1.000</p>`;
+
+        percentageBox.classList.remove('hidden');
+        percentageText.className = `text-xl lg:text-2xl font-extrabold ${isOverflow ? 'text-red-600' : 'text-sky-700'}`;
+        percentageText.textContent = '0%';
+
+        simStatus = 'filling';
+        anim.startPercent = 0;
+        anim.currentPercent = 0;
+        anim.targetPercent = isOverflow ? 106 : Math.min(fillPercentage, 100);
+        anim.startTime = performance.now();
+        anim.durationMs = isOverflow ? 1550 : 1350;
+        anim.isAnimating = true;
+        anim.completed = false;
+        soundEngine.startFilling(anim.durationMs);
+        updateStatusBanner(0);
+      });
+
+      btnReset.addEventListener('click', () => {
+        soundEngine.stop();
+        inputRadius.value = '1';
+        inputHeight.value = '2';
+        inputVolume.value = '4500';
+        validationBox.classList.add('hidden');
+        capacityBox.className = 'text-sm font-medium text-slate-500';
+        capacityBox.textContent = 'Tekan SIMULASIKAN PENGISIAN untuk menghitung kapasitas.';
+        percentageBox.classList.add('hidden');
+        currentResult = null;
+        simStatus = 'idle';
+        anim.currentPercent = 0;
+        anim.targetPercent = 0;
+        anim.isAnimating = false;
+        anim.completed = false;
+        updateStatusBanner(0);
+      });
+
+      function updateCanvasSize() {
+        const rect = container.getBoundingClientRect();
+        logicalWidth = Math.max(280, Math.floor(rect.width));
+        logicalHeight = Math.max(260, Math.floor(rect.height));
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(logicalWidth * dpr);
+        canvas.height = Math.floor(logicalHeight * dpr);
+        canvas.style.width = `${logicalWidth}px`;
+        canvas.style.height = `${logicalHeight}px`;
+      }
+
+      updateCanvasSize();
+      new ResizeObserver(updateCanvasSize).observe(container);
+
+      function easeOutCubic(x) {
+        return 1 - Math.pow(1 - x, 3);
+      }
+
+      function draw(now) {
+        const ctx = canvas.getContext('2d');
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        if (anim.isAnimating && currentResult) {
+          const elapsed = now - anim.startTime;
+          const progress = Math.min(1, Math.max(0, elapsed / anim.durationMs));
+          anim.currentPercent = anim.startPercent + (anim.targetPercent - anim.startPercent) * easeOutCubic(progress);
+          const reportedPct = Math.min(
+            currentResult.fillPercentage,
+            (anim.currentPercent / Math.max(anim.targetPercent, 1)) * currentResult.fillPercentage
+          );
+          percentageText.textContent = `${formatID(reportedPct, 1)}%`;
+          updateStatusBanner(reportedPct);
+
+          if (progress >= 1) {
+            anim.currentPercent = anim.targetPercent;
+            anim.isAnimating = false;
+            if (!anim.completed) {
+              anim.completed = true;
+              simStatus = currentResult.isOverflow ? 'overflow' : 'safe';
+              percentageText.textContent = `${formatID(currentResult.fillPercentage, 1)}%`;
+              if (currentResult.isOverflow) {
+                soundEngine.playOverflow();
+              } else {
+                soundEngine.playSafe();
+              }
+              updateStatusBanner(currentResult.fillPercentage);
+            }
+          }
+        }
+
+        const w = logicalWidth;
+        const h = logicalHeight;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx < w; gx += 28) {
+          ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke();
+        }
+        for (let gy = 0; gy < h; gy += 28) {
+          ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
+        }
+        ctx.restore();
+
+        const rVal = Number(String(inputRadius.value).replace(',', '.'));
+        const tVal = Number(String(inputHeight.value).replace(',', '.'));
+        const safeR = Number.isFinite(rVal) && rVal > 0 ? rVal : 1;
+        const safeT = Number.isFinite(tVal) && tVal > 0 ? tVal : 2;
+        const ratio = Math.max(0.5, Math.min(1.8, (safeR * 2) / safeT));
+
+        const maxTankH = h * 0.5;
+        const maxTankW = w * 0.42;
+        let tankW = Math.min(maxTankW, maxTankH * ratio * 0.88);
+        tankW = Math.max(130, Math.min(tankW, 280));
+        const tankH = Math.max(135, Math.min(maxTankH, 310));
+
+        const centerX = w * 0.5;
+        const topY = h * 0.21;
+        const bottomY = topY + tankH;
+        const ellipseRy = Math.max(14, Math.min(26, tankW * 0.125));
+        const leftX = centerX - tankW / 2;
+        const rightX = centerX + tankW / 2;
+
+        const isOverflowing = Boolean(currentResult && currentResult.isOverflow && anim.currentPercent >= 99.5);
+        const fillRatio = Math.max(0, Math.min(anim.currentPercent / 100, 1));
+        const waterTopY = bottomY - tankH * fillRatio;
+        const floorY = bottomY + ellipseRy + 22;
+
+        ctx.save();
+        ctx.strokeStyle = '#CBD5E1';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(w * 0.12, floorY); ctx.lineTo(w * 0.88, floorY); ctx.stroke();
+        ctx.fillStyle = '#64748B';
+        ctx.strokeStyle = '#334155';
+        [-0.38, 0, 0.38].forEach((offset) => {
+          const lx = centerX + tankW * offset;
+          const legTop = bottomY + ellipseRy * (offset === 0 ? 0.95 : 0.72);
+          ctx.beginPath();
+          ctx.roundRect(lx - 7, legTop - 2, 14, floorY - legTop + 2, 3);
+          ctx.fill();
+          ctx.stroke();
+        });
+        ctx.restore();
+
+        if (isOverflowing) {
+          const spillProgress = Math.min(1, (anim.currentPercent - 99.5) / 6.5);
+          const puddleRx = tankW * (0.68 + spillProgress * 0.28) + Math.sin(now * 0.008) * 4;
+          const puddleRy = 10 + spillProgress * 8;
+          ctx.save();
+          const pGrad = ctx.createRadialGradient(centerX, floorY + 2, 10, centerX, floorY + 2, puddleRx);
+          pGrad.addColorStop(0, 'rgba(56, 189, 248, 0.85)');
+          pGrad.addColorStop(1, 'rgba(14, 165, 233, 0.35)');
+          ctx.fillStyle = pGrad;
+          ctx.beginPath();
+          ctx.ellipse(centerX, floorY + 2, puddleRx, puddleRy, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        const pipeEndY = topY - ellipseRy - 14;
+        ctx.save();
+        ctx.fillStyle = '#475569';
+        ctx.strokeStyle = '#1E293B';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 22);
+        ctx.lineTo(centerX - 10, 22);
+        ctx.quadraticCurveTo(centerX + 10, 22, centerX + 10, 40);
+        ctx.lineTo(centerX + 10, pipeEndY);
+        ctx.lineTo(centerX - 10, pipeEndY);
+        ctx.lineTo(centerX - 10, 40);
+        ctx.lineTo(0, 40);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#334155';
+        ctx.beginPath();
+        ctx.roundRect(centerX - 14, pipeEndY - 6, 28, 8, 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        const bodyGrad = ctx.createLinearGradient(leftX, 0, rightX, 0);
+        bodyGrad.addColorStop(0, '#CBD5E1');
+        bodyGrad.addColorStop(0.25, '#F1F5F9');
+        bodyGrad.addColorStop(0.65, '#E2E8F0');
+        bodyGrad.addColorStop(1, '#94A3B8');
+        ctx.fillStyle = bodyGrad;
+        ctx.beginPath();
+        ctx.moveTo(leftX, topY);
+        ctx.lineTo(leftX, bottomY);
+        ctx.ellipse(centerX, bottomY, tankW / 2, ellipseRy, 0, Math.PI, 0, true);
+        ctx.lineTo(rightX, topY);
+        ctx.ellipse(centerX, topY, tankW / 2, ellipseRy, 0, 0, Math.PI, true);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#94A3B8';
+        ctx.beginPath();
+        ctx.ellipse(centerX, topY, tankW / 2, ellipseRy, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        if (anim.currentPercent > 0.2) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(leftX + 1, topY);
+          ctx.lineTo(leftX + 1, bottomY);
+          ctx.ellipse(centerX, bottomY, tankW / 2 - 1, ellipseRy, 0, Math.PI, 0, true);
+          ctx.lineTo(rightX - 1, topY);
+          ctx.ellipse(centerX, topY, tankW / 2 - 1, ellipseRy, 0, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+
+          const wGrad = ctx.createLinearGradient(leftX, 0, rightX, 0);
+          wGrad.addColorStop(0, '#38BDF8');
+          wGrad.addColorStop(0.35, '#7DD3FC');
+          wGrad.addColorStop(0.75, '#38BDF8');
+          wGrad.addColorStop(1, '#0284C7');
+
+          const waveAmp = anim.isAnimating ? 3.5 : 1.5;
+          const waveShift = Math.sin(now * 0.006) * waveAmp;
+          const clampedTopY = isOverflowing ? topY - ellipseRy * 0.25 : waterTopY;
+
+          ctx.fillStyle = wGrad;
+          ctx.beginPath();
+          ctx.moveTo(leftX, clampedTopY + waveShift);
+          ctx.bezierCurveTo(
+            leftX + tankW * 0.33, clampedTopY - waveShift,
+            leftX + tankW * 0.66, clampedTopY + waveShift,
+            rightX, clampedTopY - waveShift * 0.5
+          );
+          ctx.lineTo(rightX, bottomY + ellipseRy + 4);
+          ctx.lineTo(leftX, bottomY + ellipseRy + 4);
+          ctx.closePath();
+          ctx.fill();
+
+          const sGrad = ctx.createLinearGradient(leftX, clampedTopY - ellipseRy, rightX, clampedTopY + ellipseRy);
+          sGrad.addColorStop(0, '#BAE6FD');
+          sGrad.addColorStop(0.5, '#E0F2FE');
+          sGrad.addColorStop(1, '#7DD3FC');
+          ctx.fillStyle = sGrad;
+          ctx.beginPath();
+          ctx.ellipse(centerX, clampedTopY, tankW / 2 - 1, ellipseRy * 0.92, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        if (anim.isAnimating) {
+          const streamTargetY = Math.max(topY, waterTopY);
+          const streamW = 9 + Math.sin(now * 0.02) * 1.5;
+          ctx.save();
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.85)';
+          ctx.beginPath();
+          ctx.roundRect(centerX - streamW / 2, pipeEndY + 2, streamW, Math.max(10, streamTargetY - pipeEndY), 4);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        ctx.save();
+        ctx.strokeStyle = isOverflowing ? '#DC2626' : '#334155';
+        ctx.lineWidth = isOverflowing ? 3 : 2.5;
+        ctx.beginPath();
+        ctx.moveTo(leftX, topY); ctx.lineTo(leftX, bottomY);
+        ctx.moveTo(rightX, topY); ctx.lineTo(rightX, bottomY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(centerX, bottomY, tankW / 2, ellipseRy, 0, 0, Math.PI);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(centerX, topY, tankW / 2, ellipseRy, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        if (isOverflowing) {
+          ctx.save();
+          const spillWave = Math.sin(now * 0.014) * 3;
+          [-1, 1].forEach((side) => {
+            const edgeX = side === -1 ? leftX : rightX;
+            const outerX = edgeX + side * 11;
+            ctx.fillStyle = '#38BDF8';
+            ctx.beginPath();
+            ctx.moveTo(edgeX - side * 5, topY + 2);
+            ctx.quadraticCurveTo(outerX + side * 4, topY + 4, outerX + side * (2 + spillWave * 0.3), topY + 28);
+            ctx.lineTo(outerX + side * (4 - spillWave * 0.2), floorY - 4);
+            ctx.lineTo(edgeX + side * 2, floorY - 2);
+            ctx.lineTo(edgeX + side * 1, topY + 14);
+            ctx.closePath();
+            ctx.fill();
+          });
+          ctx.strokeStyle = '#DC2626';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath();
+          ctx.moveTo(leftX - 16, topY);
+          ctx.lineTo(rightX + 16, topY);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        ctx.save();
+        const dimX = leftX - 36;
+        ctx.strokeStyle = '#475569';
+        ctx.fillStyle = '#1E293B';
+        ctx.lineWidth = 1.75;
+        ctx.beginPath();
+        ctx.moveTo(dimX, topY); ctx.lineTo(dimX, bottomY);
+        ctx.moveTo(dimX - 6, topY); ctx.lineTo(leftX - 8, topY);
+        ctx.moveTo(dimX - 6, bottomY); ctx.lineTo(leftX - 8, bottomY);
+        ctx.stroke();
+        ctx.font = '700 14px "IBM Plex Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`t = ${formatID(safeT)} m`, dimX - 10, (topY + bottomY) / 2);
+
+        ctx.strokeStyle = '#0284C7';
+        ctx.fillStyle = '#0369A1';
+        ctx.beginPath();
+        ctx.moveTo(centerX, topY); ctx.lineTo(rightX, topY);
+        ctx.stroke();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`r = ${formatID(safeR)} m`, (centerX + rightX) / 2, topY - ellipseRy - 4);
+
+        const scaleX = rightX + 20;
+        ctx.strokeStyle = '#94A3B8';
+        ctx.font = '600 12px "IBM Plex Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        [0, 25, 50, 75, 100].forEach((pct) => {
+          const ty = bottomY - (tankH * pct) / 100;
+          ctx.beginPath();
+          ctx.moveTo(rightX + 8, ty);
+          ctx.lineTo(scaleX, ty);
+          ctx.stroke();
+          const literMark = currentResult ? ` (${formatID((currentResult.capacityLiters * pct) / 100, 0)} L)` : '';
+          ctx.fillStyle = pct === 100 && isOverflowing ? '#DC2626' : '#475569';
+          ctx.fillText(`${pct}%${literMark}`, scaleX + 6, ty);
+        });
+        ctx.restore();
+
+        ctx.save();
+        ctx.font = '700 15px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = isOverflowing ? '#DC2626' : '#0F172A';
+        let shownPct = 0;
+        if (simStatus !== 'idle' && currentResult) {
+          shownPct = anim.isAnimating
+            ? Math.min(currentResult.fillPercentage, (anim.currentPercent / Math.max(anim.targetPercent, 1)) * currentResult.fillPercentage)
+            : currentResult.fillPercentage;
+        }
+        const label = simStatus === 'idle'
+          ? 'Toren Kosong — 0%'
+          : `Ketinggian Air: ${formatID(shownPct, 1)}%${isOverflowing ? ' (MELUBER!)' : ''}`;
+        ctx.fillText(label, centerX, floorY + 18);
+        ctx.restore();
+
+        requestAnimationFrame(draw);
+      }
+
+      requestAnimationFrame(draw);
+    })();
+  </script>
+</body>
+</html>
